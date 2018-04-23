@@ -16,6 +16,7 @@ import org.ogema.core.model.simple.FloatResource;
 import org.ogema.core.model.simple.IntegerResource;
 import org.ogema.core.model.simple.SingleValueResource;
 import org.ogema.core.model.simple.StringResource;
+import org.ogema.core.model.simple.TimeResource;
 import org.ogema.core.model.units.ElectricCurrentResource;
 import org.ogema.core.model.units.EnergyResource;
 import org.ogema.core.model.units.PowerResource;
@@ -54,6 +55,7 @@ import de.iwes.widgets.html.form.dropdown.TemplateDropdown;
 import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.textfield.TextField;
+import de.iwes.widgets.html.form.textfield.ValueInputField;
 import de.iwes.widgets.html.popup.Popup;
 import de.iwes.widgets.pattern.widget.table.PatternTable;
 import de.iwes.widgets.reswidget.scheduleplot.flot.SchedulePlotFlot;
@@ -73,6 +75,8 @@ class PageBuilder {
 	private final TemplateDropdown<Class<? extends SingleValueResource>> typeSelector;
 	private final Checkbox2 resSelectorCheckbox;
 	private final TextField newPathField;
+	private final TextField schedulePathField;
+	private final ValueInputField<Long> scheduleHorizonMinutes;
 	private final TemplateDropdown<SingleValueResource> targetSelector;
 	private final Dropdown primaryTypeSelector;
 	private final TemplateDropdown<Type> secondaryTypeSelector;
@@ -217,7 +221,9 @@ class PageBuilder {
 		typeSelector.selectDefaultItem(FloatResource.class);
 		this.resSelectorCheckbox = new Checkbox2(page, "resSelectorCheckbox");
 		resSelectorCheckbox.setDefaultCheckboxList(Arrays.asList(
-				new DefaultCheckboxEntry("existing", "Simulate existing resource", true)
+				new DefaultCheckboxEntry("existing", "Simulate existing resource", true),
+				new DefaultCheckboxEntry("forecast", "Create a forecast schedule", false),
+				new DefaultCheckboxEntry("additive", "Additive/create offset at overflow", false)
 		));
 		this.newPathField = new TextField(page, "newPathField") {
 			
@@ -256,6 +262,30 @@ class PageBuilder {
 		targetSelector.setTemplate(new DefaultResourceTemplate<>());
 		this.primaryTypeSelector = new PrimaryTypeSelector(page, "primaryTypeSelector", typeCache);
 		this.secondaryTypeSelector = new SecondaryTypeSelector(page, "secondaryTypeSelector", (PrimaryTypeSelector) primaryTypeSelector, typeCache);
+		this.schedulePathField = new TextField(page, "schedulePathField", "forecast") {
+			
+			public void onGET(OgemaHttpRequest req) {
+				final boolean createForecast = resSelectorCheckbox.getCheckboxList(req).get(1).isChecked();
+				if (!createForecast)
+					disable(req);
+				else
+					enable(req);
+			}
+			
+		};
+		this.scheduleHorizonMinutes = new ValueInputField<Long>(page, "scheduleHorizonMinutes", Long.class)  {
+			
+			public void onGET(OgemaHttpRequest req) {
+				final boolean createForecast = resSelectorCheckbox.getCheckboxList(req).get(1).isChecked();
+				if (!createForecast)
+					disable(req);
+				else
+					enable(req);
+			}
+			
+		};
+		scheduleHorizonMinutes.setDefaultNumericalValue(1440L);
+		scheduleHorizonMinutes.setDefaultLowerBound(1);
 		this.newConfigSubmit = new Button(page, "newConfigSubmit", "Create new configuration") {
 			
 			public void onPOSTComplete(String data, OgemaHttpRequest req) {
@@ -299,6 +329,17 @@ class PageBuilder {
 				}
 				if (resource == null) 
 					return;
+				final boolean createForecast = resSelectorCheckbox.getCheckboxList(req).get(1).isChecked();
+				final String forecast = createForecast ? schedulePathField.getValue(req) : null;
+				final Long horizon = scheduleHorizonMinutes.getNumericalValue(req);
+				if (forecast != null && !ResourceUtils.isValidResourcePath(forecast)) {
+					alert.showAlert("Invalid schedule name: " + forecast, false, req);
+					return;
+				}
+				if (forecast != null && horizon == null) {
+					alert.showAlert("Please enter a valid forecast horizon.", false, req);
+					return;
+				}
 				@SuppressWarnings("unchecked")
 				final ResourceList<ScheduledSimulationConfig> configs = appMan.getResourceManagement().createResource(BASE_RESOURCE, ResourceList.class);
 				configs.setElementType(ScheduledSimulationConfig.class);
@@ -311,6 +352,13 @@ class PageBuilder {
 				config.typePrimary().<StringResource> create().setValue(type.primaryType);
 				if (type.secondaryType != null)
 					config.typeSecondary().<StringResource> create().setValue(type.secondaryType);
+				if (forecast != null) {
+					config.forecastSchedule().<StringResource> create().setValue(forecast);
+					config.forecastHorizon().<TimeResource> create().setValue(horizon);
+				}
+				final boolean additive = resSelectorCheckbox.getCheckboxList(req).get(2).isChecked();
+				if (additive)
+					config.additive().<BooleanResource> create().setValue(true);
 				config.activate(true);
 				alert.showAlert("New simulation configuration created for resource "+ resource, true, req);
 			}
@@ -378,13 +426,15 @@ class PageBuilder {
 		
 		final PageSnippet body = new PageSnippet(page, "popupBody", true);
 		row = 0;
-		body.append(new StaticTable(6, 2)
+		body.append(new StaticTable(8, 2)
 				.setContent(row, 0, "Select resource type").setContent(row++, 1, typeSelector)
 															.setContent(row++, 1, resSelectorCheckbox)
 				.setContent(row, 0, "Select target path").setContent(row++, 1, newPathField)
 				.setContent(row, 0, "Select target resource").setContent(row++, 1, targetSelector)
 				.setContent(row, 0, "Select simulation type (primary)").setContent(row++, 1, primaryTypeSelector)
 				.setContent(row, 0, "Select simulation type (secondary)").setContent(row++, 1, secondaryTypeSelector)
+				.setContent(row, 0, "Select forecast schedule").setContent(row++, 1, schedulePathField)
+				.setContent(row, 0, "Set forecast horizon (minutes)").setContent(row++, 1, scheduleHorizonMinutes)
 			,null);
 		newConfigPopup.setBody(body, null);
 		newConfigPopup.setFooter(newConfigSubmit, null);
@@ -401,8 +451,9 @@ class PageBuilder {
 		newConfigPopupTrigger.triggerAction(targetSelector, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST); 
 		resSelectorCheckbox.triggerAction(newPathField, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		resSelectorCheckbox.triggerAction(targetSelector, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		resSelectorCheckbox.triggerAction(schedulePathField, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+		resSelectorCheckbox.triggerAction(scheduleHorizonMinutes, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
 		templatePlotSubmit.triggerAction(templatePlot, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
-		
 	}
 	
 	@SuppressWarnings("serial")

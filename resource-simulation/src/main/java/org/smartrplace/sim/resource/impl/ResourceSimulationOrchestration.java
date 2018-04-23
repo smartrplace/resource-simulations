@@ -145,7 +145,7 @@ public class ResourceSimulationOrchestration implements Application, PatternList
 			return null;
 		}
 		try {
-			final ResourceSimulation sim = new ResourceSimulation(pattern.target.getLocationResource(), timeSeries, appMan);
+			final ResourceSimulation sim = new ResourceSimulation(pattern, timeSeries, appMan);
 			final ResourceSimulation old = simulations.put(pattern.model.getPath(), sim);
 			if (old != null)
 				old.close();
