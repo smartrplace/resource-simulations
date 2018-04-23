@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.smartrplace.sim</groupId>
+		<artifactId>resource-simulations</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+
+	<artifactId>resource-simulation</artifactId>
+	<name>OGEMA resource simulation</name>
+	<description>A generic simulation component for OGEMA resources</description>
+	<packaging>bundle</packaging>
+
+	<build>
+		<plugins>
+			<!-- execution order: run scr before manifest and manifest before tests, 
+				so that pax exam can use the manifest -->
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-scr-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<configuration>
+                    <instructions>
+                        <Import-Package>
+                        	de.iwes.widgets.api.extended;resolution:=optional,
+                        	de.iwes.widgets.api.extended.html.bricks;resolution:=optional,
+                        	de.iwes.widgets.api.extended.resource;resolution:=optional,
+                        	de.iwes.widgets.api.widgets;resolution:=optional,
+                        	de.iwes.widgets.api.widgets.dynamics;resolution:=optional,
+                        	de.iwes.widgets.api.widgets.html;resolution:=optional,
+                        	de.iwes.widgets.api.widgets.localisation;resolution:=optional,
+                        	de.iwes.widgets.api.widgets.sessionmanagement;resolution:=optional,
+                        	de.iwes.widgets.html.alert;resolution:=optional,
+                        	de.iwes.widgets.html.buttonconfirm;resolution:=optional,
+                        	de.iwes.widgets.html.complextable;resolution:=optional,
+                        	de.iwes.widgets.html.form.button;resolution:=optional,
+                        	de.iwes.widgets.html.form.checkbox;resolution:=optional,
+                        	de.iwes.widgets.html.form.dropdown;resolution:=optional,
+                        	de.iwes.widgets.html.form.label;resolution:=optional,
+                        	de.iwes.widgets.html.form.textfield;resolution:=optional,
+                        	de.iwes.widgets.html.popup;resolution:=optional,
+                        	de.iwes.widgets.pattern.widget.table;resolution:=optional,
+                        	de.iwes.widgets.reswidget.scheduleplot.flot;resolution:=optional,
+                        	de.iwes.widgets.reswidget.scheduleviewer;resolution:=optional,
+                        	de.iwes.widgets.template;resolution:=optional,
+							*                        	
+                        </Import-Package>
+                    </instructions>
+                </configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<!-- OSGi -->
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>org.osgi.core</artifactId>
+			<version>5.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.osgi</groupId>
+			<artifactId>osgi.cmpn</artifactId>
+			<version>6.0.0</version>
+		</dependency>
+        <dependency>
+		    <groupId>org.apache.commons</groupId>
+		    <artifactId>commons-csv</artifactId>
+		    <version>1.4</version>
+		</dependency>
+		<!-- OGEMA API -->
+		<dependency>
+			<groupId>org.ogema.core</groupId>
+			<artifactId>api</artifactId>
+			<version>2.1.3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.ogema.core</groupId>
+			<artifactId>models</artifactId>
+			<version>2.1.3</version>
+		</dependency>
+		<!-- OGEMA Tools and Services -->
+		<dependency>
+			<groupId>org.ogema.tools</groupId>
+			<artifactId>resource-utils</artifactId>
+			<version>2.1.3</version>
+		</dependency>
+		
+
+		<!-- OGEMA widget framework -->
+		<dependency>
+			<groupId>de.iwes.widgets</groupId>
+			<artifactId>ogema-gui-api</artifactId>
+			<version>2.1.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>de.iwes.widgets</groupId>
+			<artifactId>widget-experimental</artifactId>
+			<version>2.1.3</version>
+		</dependency>
+	</dependencies>
+
+</project>

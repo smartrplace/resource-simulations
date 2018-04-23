@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.smartrplace.sim</groupId>
+	<artifactId>resource-simulations</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>OGEMA resource simulation</name>
+	<description>A generic simulation component for OGEMA resources</description>
+	<packaging>pom</packaging>
+	<url>http://smartrplace.de</url>
+
+	<inceptionYear>2018</inceptionYear>
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0</url>
+			<distribution>manual</distribution>
+		</license>
+	</licenses>
+
+	<scm>
+		<connection>scm:git:git://github.com/smartrplace/resource-simulations.git</connection>
+		<developerConnection>scm:git:git://github.com/smartrplace/resource-simulations.git</developerConnection>
+		<url>https://github.com/smartrplace/resource-simulations</url>
+		<tag>HEAD</tag>
+	</scm>
+
+	<!-- TODO remove once all dependencies are available from Maven central -->
+	<repositories>
+		<repository>
+			<releases />
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>ogema-releases</id>
+			<name>ogema-releases</name>
+			<url>https://www.ogema-source.net/artifactory/libs-release</url>
+		</repository>
+	</repositories>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<felix.service.command.version.min>0.0.0</felix.service.command.version.min>
+		<felix.service.command.version.max>2.0.0</felix.service.command.version.max>
+	</properties>
+
+	<modules>
+		<module>resource-simulation</module>
+		<module>resource-simulation-examples</module>
+	</modules>
+	
+	<build>
+		<pluginManagement>
+			<plugins>
+			<!-- execution order: run scr before manifest and manifest before tests, 
+				so that pax exam can use the manifest -->
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-scr-plugin</artifactId>
+				<version>1.26.0</version>
+				<configuration>
+					<outputDirectory>${project.build.outputDirectory}</outputDirectory>
+				</configuration>
+				<executions>
+					<execution>
+						<id>generate-scr-scrdescriptor</id>
+						<phase>process-classes</phase>
+						<goals>
+							<goal>scr</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.felix</groupId>
+				<artifactId>maven-bundle-plugin</artifactId>
+				<extensions>true</extensions>
+				<version>3.5.0</version>
+				<executions>
+					<execution>
+						<id>bundle-manifest</id>
+						<phase>generate-test-sources</phase>
+						<goals>
+							<goal>manifest</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.7.0</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<showDeprecation>true</showDeprecation>
+					<showWarnings>true</showWarnings>
+					<compilerArgs>
+						<arg>-Xlint</arg>
+					</compilerArgs>
+				</configuration>
+			</plugin>
+				<!-- Plugin for automatic addition of header to java, html, jsp, .. files. -->
+				<plugin>
+					<groupId>com.mycila</groupId>
+					<artifactId>license-maven-plugin</artifactId>
+					<version>3.0</version>
+					<configuration>
+						<!-- see 'mvn com.mycila:license-maven-plugin:help -Ddetail=true' -->
+						<header>header.txt</header>
+						<keywords> <!-- existing license headers contain all of these keywords -->
+							<keyword>Smartrplace</keyword>
+							<keyword>Apache</keyword>
+							<keyword>License</keyword>
+						</keywords>
+						<properties>
+							<year>2018</year>
+							<email>info@smartrplace.de</email>
+						</properties>
+						<encoding>UTF-8</encoding>
+
+						<includes>
+							<include>src/**</include>
+							<include>web/**</include>
+						</includes>
+						<excludes>
+							<exclude>target/**</exclude>
+							<exclude>**/*.txt</exclude>
+							<exclude>**/*.svg</exclude>
+							<exclude>**/data/**</exclude>
+							<exclude>**/MANIFEST.MF</exclude>
+							<exclude>**/.project</exclude>
+							<exclude>**/.settings</exclude>
+							<exclude>**/.classpath</exclude>
+						</excludes>
+						<useDefaultExcludes>true</useDefaultExcludes>
+						<strictCheck>true</strictCheck>
+						<failIfMissing>true</failIfMissing>
+					</configuration>
+					<executions>
+						<execution>
+							<goals>
+								<goal>format</goal>
+							</goals>
+							<!-- don't execute this plugin automatically -> need to be invoked 
+								explicitly: mvn license:[goal] [goal] := check, format or remove -->
+							<phase>validate</phase>
+						</execution>
+					</executions>
+				</plugin>
+
+				<!-- Source Plugin -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-source-plugin</artifactId>
+					<version>3.0.1</version>
+					<executions>
+						<execution>
+							<id>attach-sources</id>
+							<goals>
+								<goal>jar-no-fork</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+
+				<!-- Javadoc Plugin -->
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>3.0.0</version>
+					<executions>
+						<execution>
+							<id>attach-javadocs</id>
+							<goals>
+								<goal>jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<version>2.19.1</version>
+					<configuration>
+						<argLine>-ea</argLine>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-release-plugin</artifactId>
+					<version>2.5.3</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+</project>
