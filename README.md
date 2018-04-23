@@ -13,7 +13,7 @@ Prerequisites: git, Java and Maven installed, ([OGEMA widgets](https://github.co
 2. In a shell, navigate to the base folder and execute `mvn clean install`.
 
 ## Configuration
-The repository only contains dummy time series as examples. New simulation time series can be added in two ways: either by means of an extension bundle (see example project), or by adding a folder "simTemplates" in the rundir. Below "simTemplates", use 1-level subfolders to structure your data, and make sure all files have ".csv"-endings. Example folder structure:  TODO
+The repository only contains dummy time series as examples. New simulation time series can be added in two ways: either by means of an extension bundle (see example project), or by adding a folder "simTemplates" in the rundir. Below "simTemplates", use 1-level subfolders to structure your data, and make sure all files have ".csv"-endings. Example folder structure:
 ```
 rundir
 |
