@@ -31,6 +31,7 @@ class ResourceSimulation implements TimerListener {
 	
 	// state; time in model schedule
 	private long time = -1;
+	private long offsetTime = Long.MIN_VALUE;
 	private float offset = 0;
 	
 	ResourceSimulation(ConfigPattern config, ReadOnlyTimeSeries input, ApplicationManager appMan) {
@@ -63,6 +64,7 @@ class ResourceSimulation implements TimerListener {
 		if (next == null) {
 			time = -1;
 			offset = ValueResourceUtils.getFloatValue(resource);
+			offsetTime = Long.MIN_VALUE;
 			timerElapsed(timer);
 			return;
 		}
@@ -101,7 +103,19 @@ class ResourceSimulation implements TimerListener {
 					forecast.addValues(forecastValues);
 			}
 		}
+		if (offsetTime == Long.MIN_VALUE) {
+			offsetTime = now - time;
+		}
+		// FIXME v1: looks nice, but an offset arises between different timeseries
 		final long diff = coming == null ? 5000 : (coming.getTimestamp() - time); 
+		// v2: no long-term offset, but the inidividual time series is distorted, at least when running at increased simuation speed
+		/*
+		long diff = coming == null ? 5000 : (coming.getTimestamp() + offsetTime - now);
+		if (diff <= 0) {
+			timerElapsed(timer);
+			return;
+		}
+		*/
 		timer.setTimingInterval(diff);
 		timer.resume();
 	}

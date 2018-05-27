@@ -1,7 +1,9 @@
 package org.smartrplace.sim.resource.impl.gui;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +58,8 @@ import de.iwes.widgets.html.form.label.Header;
 import de.iwes.widgets.html.form.label.Label;
 import de.iwes.widgets.html.form.textfield.TextField;
 import de.iwes.widgets.html.form.textfield.ValueInputField;
+import de.iwes.widgets.html.multiselect.Multiselect;
+import de.iwes.widgets.html.multiselect.TemplateMultiselect;
 import de.iwes.widgets.html.popup.Popup;
 import de.iwes.widgets.pattern.widget.table.PatternTable;
 import de.iwes.widgets.reswidget.scheduleplot.flot.SchedulePlotFlot;
@@ -87,8 +91,8 @@ class PageBuilder {
 	
 	private final Header templatesHeader;
 	// FIXME the following two should be multiselects
-	private final Dropdown templatePrimarySelector;
-	private final TemplateDropdown<Type> templateSecondarySelector;
+	private final Multiselect templatePrimarySelector;
+	private final TemplateMultiselect<Type> templateSecondarySelector;
 	private final SchedulePlotFlot templatePlot;
 	private final Button templatePlotSubmit;
  	
@@ -260,8 +264,8 @@ class PageBuilder {
 			
 		};
 		targetSelector.setTemplate(new DefaultResourceTemplate<>());
-		this.primaryTypeSelector = new PrimaryTypeSelector(page, "primaryTypeSelector", typeCache);
-		this.secondaryTypeSelector = new SecondaryTypeSelector(page, "secondaryTypeSelector", (PrimaryTypeSelector) primaryTypeSelector, typeCache);
+		this.primaryTypeSelector = new PrimaryTypeSelectorSingle(page, "primaryTypeSelector", typeCache);
+		this.secondaryTypeSelector = new SecondaryTypeSelectorSingle(page, "secondaryTypeSelector", (PrimaryTypeSelectorSingle) primaryTypeSelector, typeCache);
 		this.schedulePathField = new TextField(page, "schedulePathField", "forecast") {
 			
 			public void onGET(OgemaHttpRequest req) {
@@ -388,20 +392,20 @@ class PageBuilder {
 				final OgemaWidget trigger = page.getTriggeringWidget(req);
 				if (trigger == null)
 					return;
-				// FIXME multiselect
-				final Type type = templateSecondarySelector.getSelectedItem(req);
-				if (type == null) {
+				final List<Type> types = templateSecondarySelector.getSelectedItems(req);
+				if (types == null) {
 					getScheduleData(req).setSchedules(Collections.emptyMap());
 					return;
 				}
-				final ReadOnlyTimeSeries timeSeries = ResourceSimulationOrchestration.getTemplateTimeseries(type, typeCache.baseFolder, typeCache.ctx.getBundle());
-				if (timeSeries == null) {
-					getScheduleData(req).setSchedules(Collections.emptyMap());
-					return;
-				}
-				getScheduleData(req).setSchedules(Collections.singletonMap(type.toString(), 
-						new DefaultSchedulePresentationData(timeSeries, Float.class, type.toString(), InterpolationMode.STEPS)));
-				
+				final Map<String,SchedulePresentationData> map = new HashMap<>(types.size()+2);
+				for (Type type :types) {
+					final ReadOnlyTimeSeries timeSeries = ResourceSimulationOrchestration.getTemplateTimeseries(type, typeCache.baseFolder, typeCache.ctx.getBundle());
+					if (timeSeries == null)
+						continue;
+					final String id = type.primaryType + ": " + type.secondaryType;
+					map.put(type.toString(), new DefaultSchedulePresentationData(timeSeries, Float.class, type.toString(), InterpolationMode.STEPS));
+				}				
+				getScheduleData(req).setSchedules(map);
 			}
 			
 		};
@@ -457,7 +461,7 @@ class PageBuilder {
 	}
 	
 	@SuppressWarnings("serial")
-	private static class PrimaryTypeSelector extends Dropdown {
+	private static class PrimaryTypeSelector extends Multiselect {
 		
 		private final TypeCache typeCache;
 		
@@ -474,9 +478,28 @@ class PageBuilder {
 		}
 		
 	}
+	
+	@SuppressWarnings("serial")
+	private static class PrimaryTypeSelectorSingle extends Dropdown {
+		
+		private final TypeCache typeCache;
+		
+		PrimaryTypeSelectorSingle(WidgetPage<?> page, String id, TypeCache typeCache) {
+			super(page, id);
+			this.typeCache = typeCache;
+		}
+		
+		public void onGET(OgemaHttpRequest req) {
+			final Map<String,String> map = typeCache.getSupportedTypes().keySet()
+				.stream()
+				.collect(Collectors.toMap(Function.identity(), Function.identity()));
+			update(map, req);
+		}
+		
+	}
 
 	@SuppressWarnings("serial")
-	private static class SecondaryTypeSelector extends TemplateDropdown<Type> {
+	private static class SecondaryTypeSelector extends TemplateMultiselect<Type> {
 			
 		private final PrimaryTypeSelector primarySelector;
 		private final TypeCache typeCache;
@@ -495,10 +518,43 @@ class PageBuilder {
 
 				@Override
 				public String getLabel(Type object, OgemaLocale locale) {
-					final String secondary = object.secondaryType;
-					if (secondary == null)
-						return "default";
-					return secondary;
+					return getId(object);
+				}
+			});
+		}
+
+		public void onGET(OgemaHttpRequest req) {
+			final Collection<String> keys = typeCache.getSupportedTypes().keySet();
+			update(primarySelector.getSelectedValues(req).stream()
+				.filter(keys::contains)
+				.map(typeCache.getSupportedTypes()::get)
+				.flatMap(Collection::stream)
+				.collect(Collectors.toList()), req);
+		}
+		
+	}
+
+	@SuppressWarnings("serial")
+	private static class SecondaryTypeSelectorSingle extends TemplateDropdown<Type> {
+			
+		private final PrimaryTypeSelectorSingle primarySelector;
+		private final TypeCache typeCache;
+		
+		SecondaryTypeSelectorSingle(WidgetPage<?> page, String id, PrimaryTypeSelectorSingle primarySelector, TypeCache typeCache) {
+			super(page, id);
+			this.primarySelector = primarySelector;
+			this.typeCache = typeCache;
+			primarySelector.triggerAction(this, TriggeringAction.POST_REQUEST, TriggeredAction.GET_REQUEST);
+			this.setTemplate(new DisplayTemplate<Type>() {
+
+				@Override
+				public String getId(Type object) {
+					return object.toString();
+				}
+
+				@Override
+				public String getLabel(Type object, OgemaLocale locale) {
+					return getId(object);
 				}
 			});
 		}
@@ -511,7 +567,6 @@ class PageBuilder {
 			}
 			update(typeCache.getSupportedTypes().get(primary), req);
 		}
-			
 		
 	}
 	

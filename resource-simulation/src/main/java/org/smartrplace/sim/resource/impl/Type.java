@@ -41,8 +41,7 @@ public class Type {
 	public String toString() {
 		final StringBuilder sb =new StringBuilder();
 		sb.append("Type [").append(primaryType);
-		if (secondaryType != null)
-			sb.append(',').append(' ').append(secondaryType);
+		sb.append(',').append(' ').append(secondaryType != null ? secondaryType : "default");
 		sb.append(']');
 		return sb.toString();
 	}
