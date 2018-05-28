@@ -41,5 +41,5 @@ The timeseries will be repeated over and over again, when it is finished.
 To start a simulation, either use the provided GUI to create the configuration, or directly create a resource of type [ScheduledSimulationConfig](https://github.com/smartrplace/resource-simulations/blob/master/resource-simulation/src/main/java/org/smartrplace/sim/resource/config/ScheduledSimulationConfig.java), with a reference to the simulated resource in the `target` field, and two ids for the simulation type in `typePrimary` and `typeSecondary`. For instance, the types could be `temperature` and `outside`, for the example folder structure above. If the secondary type is `default`, it can be skipped.
 
 ## Run
-Add the bundle `org.smartrplace.sim/resource-simulation/0.0.1-SNAPSHOT` to your OGEMA run configuration, plus any fragment bundles with simulation data.  
+Add the bundle `org.smartrplace.sim/resource-simulation/0.0.1` to your OGEMA run configuration, plus any fragment bundles with simulation data.  
  

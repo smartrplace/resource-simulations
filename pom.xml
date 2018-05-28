@@ -5,7 +5,7 @@
 
 	<groupId>org.smartrplace.sim</groupId>
 	<artifactId>resource-simulations</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<name>OGEMA resource simulation</name>
 	<description>A generic simulation component for OGEMA resources</description>
 	<packaging>pom</packaging>
