@@ -122,8 +122,7 @@
 						<encoding>UTF-8</encoding>
 
 						<includes>
-							<include>src/**</include>
-							<include>web/**</include>
+							<include>src/main/java/**</include>
 						</includes>
 						<excludes>
 							<exclude>target/**</exclude>

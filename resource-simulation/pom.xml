@@ -43,10 +43,12 @@
                         	de.iwes.widgets.html.form.dropdown;resolution:=optional,
                         	de.iwes.widgets.html.form.label;resolution:=optional,
                         	de.iwes.widgets.html.form.textfield;resolution:=optional,
+                        	de.iwes.widgets.html.multiselect;resolution:=optional,
                         	de.iwes.widgets.html.popup;resolution:=optional,
                         	de.iwes.widgets.pattern.widget.table;resolution:=optional,
                         	de.iwes.widgets.reswidget.scheduleplot.flot;resolution:=optional,
                         	de.iwes.widgets.reswidget.scheduleviewer;resolution:=optional,
+                        	de.iwes.widgets.reswidget.scheduleviewer.api;resolution:=optional,
                         	de.iwes.widgets.template;resolution:=optional,
 							*                        	
                         </Import-Package>
@@ -96,7 +98,7 @@
 		<dependency>
 			<groupId>de.iwes.widgets</groupId>
 			<artifactId>ogema-gui-api</artifactId>
-			<version>2.1.4-SNAPSHOT</version>
+			<version>2.1.4-SNAPSHOT</version><!-- FIXME -->
 		</dependency>
 		<dependency>
 			<groupId>de.iwes.widgets</groupId>
