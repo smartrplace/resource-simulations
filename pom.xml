@@ -5,7 +5,7 @@
 
 	<groupId>org.smartrplace.sim</groupId>
 	<artifactId>resource-simulations</artifactId>
-	<version>0.0.2</version>
+	<version>0.0.3-SNAPSHOT</version>
 	<name>OGEMA resource simulation</name>
 	<description>A generic simulation component for OGEMA resources</description>
 	<packaging>pom</packaging>
@@ -24,7 +24,7 @@
 		<connection>scm:git:git://github.com/smartrplace/resource-simulations.git</connection>
 		<developerConnection>scm:git:git://github.com/smartrplace/resource-simulations.git</developerConnection>
 		<url>https://github.com/smartrplace/resource-simulations</url>
-		<tag>0.0.2</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<properties>
