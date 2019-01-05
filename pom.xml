@@ -5,7 +5,7 @@
 
 	<groupId>org.smartrplace.sim</groupId>
 	<artifactId>resource-simulations</artifactId>
-	<version>0.0.2-SNAPSHOT</version>
+	<version>0.0.2</version>
 	<name>OGEMA resource simulation</name>
 	<description>A generic simulation component for OGEMA resources</description>
 	<packaging>pom</packaging>
@@ -24,21 +24,8 @@
 		<connection>scm:git:git://github.com/smartrplace/resource-simulations.git</connection>
 		<developerConnection>scm:git:git://github.com/smartrplace/resource-simulations.git</developerConnection>
 		<url>https://github.com/smartrplace/resource-simulations</url>
-		<tag>HEAD</tag>
+		<tag>0.0.2</tag>
 	</scm>
-
-	<!-- TODO remove once all dependencies are available from Maven central -->
-	<repositories>
-		<repository>
-			<releases />
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<id>ogema-releases</id>
-			<name>ogema-releases</name>
-			<url>https://www.ogema-source.net/artifactory/libs-release</url>
-		</repository>
-	</repositories>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -54,30 +41,11 @@
 	<build>
 		<pluginManagement>
 			<plugins>
-			<!-- execution order: run scr before manifest and manifest before tests, 
-				so that pax exam can use the manifest -->
-			<plugin>
-				<groupId>org.apache.felix</groupId>
-				<artifactId>maven-scr-plugin</artifactId>
-				<version>1.26.0</version>
-				<configuration>
-					<outputDirectory>${project.build.outputDirectory}</outputDirectory>
-				</configuration>
-				<executions>
-					<execution>
-						<id>generate-scr-scrdescriptor</id>
-						<phase>process-classes</phase>
-						<goals>
-							<goal>scr</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>maven-bundle-plugin</artifactId>
 				<extensions>true</extensions>
-				<version>3.5.0</version>
+				<version>4.0.0</version>
 				<executions>
 					<execution>
 						<id>bundle-manifest</id>
@@ -169,12 +137,26 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
-					<version>3.0.0</version>
+					<version>3.0.1</version>
 					<executions>
 						<execution>
 							<id>attach-javadocs</id>
 							<goals>
 								<goal>jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-gpg-plugin</artifactId>
+					<version>1.6</version>
+					<executions>
+						<execution>
+							<id>sign-artifacts</id>
+							<phase>verify</phase>
+							<goals>
+								<goal>sign</goal>
 							</goals>
 						</execution>
 					</executions>
@@ -197,4 +179,40 @@
 		</pluginManagement>
 	</build>
 
+	<profiles>
+	<!-- Sign and deploy locally, for testing. Usage: mvn -Psign install -DskipTests 
+			-o -->
+		<profile>
+			<id>sign</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<!-- Generate source, javadoc, sign and deploy. Usage: 
+				mvn -Psign-and-deploy deploy -DskipTests -Dadditionalparam=-Xdoclint:none -Dgpg.keyname=smartrplace-->
+			<id>sign-and-deploy</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
